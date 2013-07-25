@@ -29,5 +29,8 @@ function require_lib($name) {
 }
 
 
+
+require_lib('config');
+
 // Turn off all error reporting
 //error_reporting( 0 );

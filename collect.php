@@ -1,30 +1,33 @@
 <?php
 
+/**
+ * This script scans the network to identify all hosts.
+ */
+
 require_once 'bootstrap.php';
 
 require_lib('nmap');
 require_lib('asus_router');
 
 
+$ip_range = Config::get('scan_range');
 
-//network_scan('10.0.0.170-171', null);
+$router_host = Config::get('router_host');
+$router_username = Config::get('router_username');
+$router_password = Config::get('router_password');
 
-parse_scan_result('C:/Temp/nmap2.xml');
-//parse_scan_result('C:/Users/Cyril/git/network-monitor/example/2_hosts.xml');
+
+// do a network scan to discover all active hosts.
+network_scan($ip_range, null);
 
 
-asus_router_fetch_client_list('10.0.0.1', 'admin', 'password169');
+//asus_router_fetch_client_list('10.0.0.1', 'admin', 'password169');
 
-$list = asus_router_fetch_dhcp_leases('10.0.0.1', 'admin', 'password169');
+// obtains a list of DHCP leases which contains MAC address <-> hostname 
+// mapping. Note that host name may not be identified.
+$list = asus_router_fetch_dhcp_leases($router_host, $router_username, $router_password);
 
-foreach ($list as $item) {
-	echo "# [" . $item['mac'] . "] -> [" . $item['hostname'] . "]\n";
-}
-
+// update the scanned result using the DHCP lease.
 $updateCount = update_scanned_host_with_dhcp_lease($list);
-
 echo "Number of scanned host record updated: $updateCount\n";
 
-
-
-?>

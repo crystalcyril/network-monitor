@@ -43,7 +43,7 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 	$return = preg_split("/';/", $return, 2);
 	$return = $return[0];
 	
-	echo $return;
+	// echo $return;
 	
 	// parse the response body.
 	$hosts = preg_split('/,/', $return);
@@ -76,14 +76,15 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 		$hostname = trim($parts[0]);
 		$ip = $parts[1];
 		$mac = $parts[2];
-		
-		echo "recordType = $recordType\n";
-		echo "hostname = [[$hostname]]\n";
-		echo "mac = $mac\n";
-		echo "ip = $ip\n";
+
+		// debug
+// 		echo "recordType = $recordType\n";
+// 		echo "hostname = [[$hostname]]\n";
+// 		echo "mac = $mac\n";
+// 		echo "ip = $ip\n";
 	}
 	
-	print_r($hosts);
+	//print_r($hosts);
 	
 }
 
@@ -132,7 +133,7 @@ function asus_router_fetch_dhcp_leases($router_ip, $username, $password) {
 	// </dhcplease>
 	
 	
-// 	echo "\n[[[$return]]\n\n";
+ 	//echo "\n[[[$return]]\n\n";
 	
 	$return = preg_split('/\?>/', $return);
 

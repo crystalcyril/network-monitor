@@ -201,15 +201,17 @@ class FileDb {
 		
 		SELECT s.ipv4, s.hostname, s.mac, null as nickname
 		FROM host s
-		WHERE (s.mac IS NULL OR LOWER(s.mac) NOT in (SELECT DISTINCT LOWER(mac) FROM host_alias WHERE mac IS NOT NULL AND mac<>''))
-		AND (s.ipv4 IS NULL OR LOWER(s.ipv4) NOT in (SELECT DISTINCT LOWER(ipv4) FROM host_alias WHERE ipv4 IS NOT NULL AND ipv4<>''))
-		AND (s.ipv6 IS NULL OR LOWER(s.ipv6) NOT in (SELECT DISTINCT LOWER(ipv6) FROM host_alias WHERE ipv6 IS NOT NULL AND ipv6<>''))
-		AND (s.hostname IS NULL OR LOWER(s.hostname) NOT in (SELECT DISTINCT LOWER(hostname) FROM host_alias WHERE hostname IS NOT NULL AND hostname<>''))
+		WHERE (s.mac IS NULL OR LOWER(s.mac) NOT IN (SELECT DISTINCT LOWER(mac) FROM host_alias WHERE mac IS NOT NULL AND mac <> ''))
+		AND (s.ipv4 IS NULL OR LOWER(s.ipv4) NOT IN (SELECT DISTINCT LOWER(ipv4) FROM host_alias WHERE ipv4 IS NOT NULL AND ipv4 <> ''))
+		AND (s.ipv6 IS NULL OR LOWER(s.ipv6) NOT IN (SELECT DISTINCT LOWER(ipv6) FROM host_alias WHERE ipv6 IS NOT NULL AND ipv6 <> ''))
+		AND (s.hostname IS NULL OR LOWER(s.hostname) NOT IN (SELECT DISTINCT LOWER(hostname) FROM host_alias WHERE hostname IS NOT NULL AND hostname <> ''))
 		
 		)";
 		
-		$sql .= "WHERE ipv4 NOT IN (SELECT DISTINCT ipv4 FROM host_filter WHERE ipv4 IS NOT NULL) "
-				. " AND mac NOT IN (SELECT DISTINCT mac FROM host_filter WHERE mac IS NOT NULL)";
+		$sql .= "WHERE ipv4 NOT IN (SELECT DISTINCT ipv4 FROM host_filter WHERE ipv4 IS NOT NULL AND ipv4 <> '') "
+				. " AND mac NOT IN (SELECT DISTINCT mac FROM host_filter WHERE mac IS NOT NULL AND mac <> '')"
+				. " AND hostname NOT IN (SELECT DISTINCT hostname FROM host_filter WHERE hostname IS NOT NULL AND hostname <> '')"
+				;
 				
 		$sql .= "ORDER BY nickname DESC";
 		$stmt = $this->db->prepare($sql);

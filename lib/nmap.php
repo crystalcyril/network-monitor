@@ -1,6 +1,5 @@
 <?php
 
-
 if (!defined('BOOTSTRAPPED')) {
 	exit('should not include this script directly');
 }
@@ -65,7 +64,7 @@ function parse_scan_result($output_file) {
 		// iterate all hosts
 		foreach ($xmlDoc->host as $host) {
 
-			echo "== host ==\n";
+// 			echo "== host ==\n";
 			
 			//
 			// we will collect these variables:
@@ -85,7 +84,7 @@ function parse_scan_result($output_file) {
 					
 					$addrType = $address['addrtype'];
 					
-					echo " - " . $address['addr'] . " (" . $addrType . ")" . "\n";
+// 					echo " - " . $address['addr'] . " (" . $addrType . ")" . "\n";
 					
 					// handle different address types.
 					if ('ipv4' == $addrType) {
@@ -116,13 +115,13 @@ function parse_scan_result($output_file) {
 			}
 			
 			// output in console for debugging.
-			echo "host information:\n";
-			echo "- host       : $hostname\n";
-			echo "- ipv4       : $ipv4\n";
-			echo "- ipv6       : $ipv6\n";
-			echo "- mac        : $mac\n";
-			echo "- nic vendor : $nicVendor\n";
-			echo "\n";
+// 			echo "host information:\n";
+// 			echo "- host       : $hostname\n";
+// 			echo "- ipv4       : $ipv4\n";
+// 			echo "- ipv6       : $ipv6\n";
+// 			echo "- mac        : $mac\n";
+// 			echo "- nic vendor : $nicVendor\n";
+// 			echo "\n";
 			
 			$host['ipv4'] = $ipv4;
 			$host['ipv6'] = $ipv6;
@@ -139,5 +138,7 @@ function parse_scan_result($output_file) {
 	}
 	
 	$db->close();
+	
+	return TRUE;
 		
 }

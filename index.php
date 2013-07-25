@@ -50,10 +50,15 @@ $activeHosts = $db->getActiveHostsWithNickName();
             	<tbody>
             		<?php
             			foreach ($activeHosts as $activeHost) {
+
+							$macInfo = 'MAC: ' . strtoupper($activeHost['mac']);
+							if ($activeHost['nic_vendor'] != null) {
+								$macInfo .= ' (' . htmlspecialchars($activeHost['nic_vendor']) . ')';
+							}
             		?>
             		<tr>
             			<td><?php echo $activeHost['nickname'];?></td>
-            			<td><?php echo $activeHost['ipv4'];?></td>
+            			<td><span title="<?php echo $macInfo;?>"><?php echo $activeHost['ipv4'];?></span></td>
             			<td><?php echo $activeHost['hostname'];?></td>
             		</tr>
             		<?php

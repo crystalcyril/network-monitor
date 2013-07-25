@@ -86,6 +86,9 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 	
 	//print_r($hosts);
 	
+	_asus_router_logout($router_ip);
+	
+	
 }
 
 
@@ -141,6 +144,11 @@ function asus_router_fetch_dhcp_leases($router_ip, $username, $password) {
 	
 	if (count($return) == 2) {
 		$return = $return[1];
+	} else {
+		
+		echo "\n[[[" . $return[0] . "]\n\n";
+		
+		$return = $return[0];
 	}
 	
 	$xmlDoc = simplexml_load_string($return);
@@ -184,11 +192,35 @@ function asus_router_fetch_dhcp_leases($router_ip, $username, $password) {
 		
 	}
 	
+	
+	
+	_asus_router_logout($router_ip);
+	
 	return $list;
 	
 }
 
 
+function _asus_router_logout($router_ip) {
+
+	$url = 'http://' . $router_ip . '/Logout.asp';
+	
+	$process = curl_init($url);
+	curl_setopt($process, CURLOPT_HTTPHEADER,
+	array(
+	'Accept: */*',
+	'Accept-Language: en-US,en;q=0.8'
+			)
+	);
+	curl_setopt($process, CURLOPT_HEADER, 1);
+	//curl_setopt($process, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	//curl_setopt($process, CURLOPT_USERPWD, $username . ":" . $password);
+	curl_setopt($process, CURLOPT_TIMEOUT, 30);
+	curl_setopt($process, CURLOPT_RETURNTRANSFER, TRUE);
+	$return = curl_exec($process);
+	curl_close($process);	
+	
+}
 
 
 function update_scanned_host_with_dhcp_lease($list) {

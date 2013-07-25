@@ -25,6 +25,7 @@ function network_scan($target, $options) {
 	$output_xml_file = tempnam(sys_get_temp_dir(), "netmon");
 
 	$opts = '-sV -T4 -O -F --version-light';
+	$opts = '-T4 -F';
 
 	// build the command
 	$cmd = $nmap_bin . " $opts $target" . " -oX $output_xml_file";
@@ -36,7 +37,7 @@ function network_scan($target, $options) {
 	
 	exec($cmd, $output, $exec_ret_code);
 	
-	echo "nmap return code: $exec_ret_code";
+	echo "nmap return code: $exec_ret_code\n";
 	
 	parse_scan_result($output_xml_file);
 	
@@ -60,7 +61,6 @@ function parse_scan_result($output_file) {
 	
 	if (count($xmlDoc->host) > 0) {
 
-		
 		// iterate all hosts
 		foreach ($xmlDoc->host as $host) {
 
@@ -75,6 +75,11 @@ function parse_scan_result($output_file) {
 			$nicVendor = null;	// e.g. Apple, 
 			$hostname = null;
 			$nicState = null;	// e.g. up/down
+			
+			// we need to skip those inactive scans
+			if (strtolower($host->status['state']) != 'up') {
+				continue;
+			}
 			
 			
 			// dael with IP, MAC addresses, and NIC vendor information.

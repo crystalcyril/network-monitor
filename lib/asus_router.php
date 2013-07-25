@@ -136,8 +136,12 @@ function asus_router_fetch_dhcp_leases($router_ip, $username, $password) {
  	//echo "\n[[[$return]]\n\n";
 	
 	$return = preg_split('/\?>/', $return);
-
-	$return = $return[1];
+	
+	echo  "split count: " . count($return) . "\n";
+	
+	if (count($return) == 2) {
+		$return = $return[1];
+	}
 	
 	$xmlDoc = simplexml_load_string($return);
 	

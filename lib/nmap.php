@@ -145,5 +145,5 @@ function parse_scan_result($output_file) {
 	$db->close();
 	
 	return TRUE;
-		
+	
 }

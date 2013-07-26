@@ -112,7 +112,7 @@ class FileDb {
 		// do nothing for empty list.
 		if ($list == null || empty($list)) return;
 
-		$sql = "UPDATE host SET hostname = :hostname WHERE LOWER(mac) = :mac";
+		$sql = "UPDATE host SET hostname = :hostname WHERE LOWER(mac) = :mac AND (hostname IS NULL OR hostname = '')";
 		$stmt = $this->db->prepare($sql);
 		
 		$updateCount = 0;
@@ -136,6 +136,40 @@ class FileDb {
 		return $updateCount;
 		
 	}
+	
+	
+	public function updateHostByIpV4($list) {
+	
+		// do nothing for empty list.
+		if ($list == null || empty($list)) return;
+	
+		$sql_update_hostname = "UPDATE host SET hostname = :hostname WHERE LOWER(mac) = :mac AND (hostname IS NULL OR hostname = '')";
+		
+		$stmt = $this->db->prepare($sql_update_hostname);
+	
+		$updateCount = 0;
+	
+		foreach ($list as $item) {
+				
+			if (empty($item['mac']) || empty($item['hostname'])) {
+				continue;
+			}
+				
+			$realMac = strtolower($item['mac']);
+			$stmt->bindParam(':mac', $realMac);
+			$stmt->bindParam(':hostname', $item['hostname']);
+			$retval = $stmt->execute();
+				
+			if ($retval != FALSE) {
+				$updateCount++;
+			}
+		}
+	
+		return $updateCount;
+	
+	}	
+	
+	
 	
 	public function getActiveHostCount() {
 		

@@ -59,6 +59,8 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 	// - for the <n> thing, seems 1 = host name, 6 = IP address.
 	// - everything afterwards are delimited by the character ">" (greater than).
 	
+	$result = array();
+	
 	// grep the leading <n> element
 	foreach ($hosts as $host) {
 		
@@ -74,8 +76,14 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 		$parts = preg_split("/>/", $matches[2], 6);
 		
 		$hostname = trim($parts[0]);
-		$ip = $parts[1];
-		$mac = $parts[2];
+		$ip = trim($parts[1]);
+		$mac = trim($parts[2]);
+		
+		$o['ipv4'] = $ip;
+		$o['mac'] = $mac;
+		$o['hostname'] = $hostname;
+		
+		$result[] = $o;
 
 		// debug
 // 		echo "recordType = $recordType\n";
@@ -88,6 +96,8 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 	
 	_asus_router_logout($router_ip);
 	
+	
+	return $result;
 	
 }
 

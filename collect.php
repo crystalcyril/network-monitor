@@ -21,7 +21,9 @@ $router_password = Config::get('router_password');
 network_scan($ip_range, null);
 
 
-//asus_router_fetch_client_list('10.0.0.1', 'admin', 'password169');
+$list = asus_router_fetch_client_list('10.0.0.1', 'admin', 'password169');
+$updateCount = update_scanned_host_with_dhcp_lease($list);
+echo "Number of scanned host record updated (by router client list): $updateCount\n";
 
 // obtains a list of DHCP leases which contains MAC address <-> hostname 
 // mapping. Note that host name may not be identified.
@@ -29,5 +31,4 @@ $list = asus_router_fetch_dhcp_leases($router_host, $router_username, $router_pa
 
 // update the scanned result using the DHCP lease.
 $updateCount = update_scanned_host_with_dhcp_lease($list);
-echo "Number of scanned host record updated: $updateCount\n";
-
+echo "Number of scanned host record updated (by DHCP leases): $updateCount\n";

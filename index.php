@@ -28,7 +28,6 @@ $activeHosts = $db->getActiveHostsWithNickName();
 
     <div class="row">
         <div class="large-12 columns">
-            <h2>Network States</h2>
             <hr />
             Active Hosts: <span id="active_host"><?php echo $activeHostCount;?></span>
             <br />

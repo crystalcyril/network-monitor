@@ -15,8 +15,44 @@ function get_nmap_bin() {
 }
 
 
+
 /**
- * 
+ * Scan the whole network using NMAP, and return the result as XML.
+ *
+ * Read the nmap documentation for the output of XML.
+ */
+function netmon_nmap_network_scan($target, $options) {
+
+	$nmap_bin = get_nmap_bin();
+
+	$output_xml_file = tempnam(sys_get_temp_dir(), "netmon");
+
+	$opts = '-sV -T4 -O -F --version-light';
+	// the "-A" parameters enable nmap
+	$opts = '-T4 -F';
+
+	// build the command.
+	$cmd = $nmap_bin . " $opts $target" . " -oX $output_xml_file";
+
+	$output = array();
+	$exec_ret_code = 0;
+
+	echo "nmap command: $cmd\n";
+
+	exec($cmd, $output, $exec_ret_code);
+
+	echo "nmap return code: $exec_ret_code\n";
+
+// 	parse_scan_result($output_xml_file);
+
+}
+
+
+
+/**
+ * Scan the whole network using NMAP, and return the result as XML.
+ *
+ * Read the nmap documentation for the output of XML.
  */
 function network_scan($target, $options) {
 	
@@ -25,9 +61,10 @@ function network_scan($target, $options) {
 	$output_xml_file = tempnam(sys_get_temp_dir(), "netmon");
 
 	$opts = '-sV -T4 -O -F --version-light';
+	// the "-A" parameters enable nmap
 	$opts = '-T4 -F';
 
-	// build the command
+	// build the command.
 	$cmd = $nmap_bin . " $opts $target" . " -oX $output_xml_file";
 	
 	$output = array();

@@ -6,9 +6,14 @@
 
 require_once 'bootstrap.php';
 
+require_lib('netmon');
+
+netmon_collect();
+
+/*
+
 require_lib('nmap');
 require_lib('asus_router');
-
 
 $ip_range = Config::get('scan_range');
 
@@ -32,3 +37,4 @@ $list = asus_router_fetch_dhcp_leases($router_host, $router_username, $router_pa
 // update the scanned result using the DHCP lease.
 $updateCount = update_scanned_host_with_dhcp_lease($list);
 echo "Number of scanned host record updated (by DHCP leases): $updateCount\n";
+*/

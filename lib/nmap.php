@@ -43,7 +43,7 @@ function netmon_nmap_network_scan($target, $options) {
 
 	echo "nmap return code: $exec_ret_code\n";
 
-// 	parse_scan_result($output_xml_file);
+	parse_scan_result($output_xml_file);
 
 }
 

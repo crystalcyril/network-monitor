@@ -60,7 +60,11 @@ function netmon_collect() {
  */
 function netmon_scan_active_hosts($netmonScanSession, $ip_range) {
 	
-	netmon_nmap_network_scan($ip_range, null);
+	$result = netmon_nmap_network_scan($ip_range, null);
+	
+	
+	netmon_patch_netbios_name();
+	
 	
 }
 
@@ -73,3 +77,14 @@ function netmon_create_scan_session() {
 function netmon_close_scan_session($netmonScanSession) {
 	return false;
 }
+
+
+/**
+ * 
+ */
+function netmon_patch_netbios_name() {
+	
+	
+	
+}
+

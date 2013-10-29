@@ -358,7 +358,7 @@ function netmon_nbtscan($ip) {
 		
 		$ret['ipv4'] = $host_details[0];
 		$ret['hostname'] = $netbios_name;
-		$ret['mac'] = $host_details[4];
+		$ret['mac'] = strtoupper($host_details[4]);
 	}
 
 	return $ret;

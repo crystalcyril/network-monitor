@@ -85,7 +85,7 @@ function asus_router_fetch_client_list($router_ip, $username, $password) {
 		$mac = trim($parts[2]);
 		
 		$o['ipv4'] = $ip;
-		$o['mac'] = $mac;
+		$o['mac'] = strtoupper($mac);
 		$o['hostname'] = $hostname;
 		
 		$result[] = $o;
@@ -297,7 +297,7 @@ function asus_router_get_dhcp_lease($router_ip, $username, $password) {
 		if (strlen($mac) != 17) {
 			continue;
 		}
-		$mac = strtolower($mac);
+		$mac = strtoupper($mac);
 		$o['mac'] = $mac;
 
 		// the third element is IP (v4) address.
@@ -399,7 +399,7 @@ function asus_router_get_wireless_client_list($router_ip, $username, $password) 
 		if (strlen($mac) != 17) {
 			continue;
 		}
-		$mac = strtolower($mac);
+		$mac = strtoupper($mac);
 		$o['mac'] = $mac;
 
 		$ret[] = $o;

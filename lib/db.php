@@ -259,6 +259,9 @@ class FileDb {
 		
 		
 	}
+
+	public function getHostSessionWithEmptyHostname() {
+	}
 	
 	
 	public function close() {

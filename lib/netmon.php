@@ -37,24 +37,28 @@ function netmon_collect() {
 	// read external configuration.
 	$ip_range = Config::get('scan_range');
 	
-	// asus's router configuration.
-	$router_host = Config::get('router_host');
-	$router_username = Config::get('router_username');
-	$router_password = Config::get('router_password');
-	
 	
 	// start a new scan session.
 	$netmonScanSession = netmon_create_scan_session();
+
+	//
+	// Scan technique.
+	//
+
 
 	// call nmap to scan for ALL hosts and return the scanned result
 	// as XML document.
 	echo "scanning hosts using nmap on ip range $ip_range...\n";
 	$hosts = netmon_nmap_network_scan($ip_range, null);
+	echo "number of hosts located by nmap: " . count($hosts) . "\n";
 
-	echo "number of hosts located: " . count($hosts) . "\n";
+	netmon_asus_router_scan($hosts);
+
 
 	// let nbtscan to patch information
 	netmon_nbtscan_visit($hosts);
+
+	netmon_asusrouter_visit($hosts);
 
 	// now append information if not exists.
 	echo "hosts after rectification\n";
@@ -62,9 +66,6 @@ function netmon_collect() {
 	
 
 
-	// use nmap to collect active hosts.
-//	netmon_scan_active_hosts($netmonScanSession, $ip_range);
-	
 	// close the scan session.
 	$netmonScanSession = netmon_close_scan_session($netmonScanSession);
 
@@ -75,7 +76,10 @@ function netmon_collect() {
 	$db->clearScannedHosts();
 
 	foreach ($hosts as $host) {
-		$db->insertScannedHost($host);
+		$id = $db->insertScannedHost($host);
+		if (empty($id)) {
+			echo "failed to save host to database (ip: " . $host['ipv4'] . ")\n";
+		}
 	}
 
 	
@@ -123,6 +127,7 @@ function netmon_nbtscan_visit(&$hosts) {
 		$nbtscan_result = netmon_nbtscan($host['ipv4']);
 		if ($nbtscan_result === FALSE) {
 			// no result found, skipped.
+			echo "nbtscan found no result for IP " . $host['ipv4'] . ", skipped\n";
 			continue;
 		}
 
@@ -138,20 +143,139 @@ function netmon_nbtscan_visit(&$hosts) {
 }
 
 
-/**
- * 
- * 
- * @param unknown $netmonScanSession
- */
-function netmon_scan_active_hosts($netmonScanSession, $ip_range) {
-	
-	$hostXml = netmon_nmap_network_scan($ip_range, null);
 
-	echo "number of hosts located: " . count($hostXml->host) . "\n";
-	
-	netmon_patch_netbios_name();
+/**
+ * Visit each input host's record and patch missing information.
+ *
+ * Current implementation will access ASUS router to look for information,
+ * this function is capable of doing the following:
+ *
+ * 1. patch missing hostname with matching MAC address.
+ */
+function netmon_asusrouter_visit(&$hosts) {
+
+	// asus's router configuration.
+	$router_host = Config::get('router_host');
+	$router_username = Config::get('router_username');
+	$router_password = Config::get('router_password');
+
+	if (empty($router_host)) {
+		echo "router host IP missing, aborted\n";
+		return;
+	}
+
+	// obtains list of clients from router.
+	$router_mac_to_host_list = asus_router_fetch_dhcp_leases($router_host, $router_username, $router_password);
+
+//	print_r($router_mac_to_host_list);
+
+	// now we visit each host from the input hosts list, 
+	// and if hostname is missing, we try to look it up from 
+	// router's returned value.
+	foreach ($hosts as &$host) {
+		// if hostname already exists for the iterated host, skip processing.
+		if (!empty($host['hostname']) || strlen(trim($host['hostname'])) > 0)
+			continue;
+		// since we need MAC address to lookup, if the host does not 
+		// have MAC address, we skip as well.
+		if (empty($host['mac']) || strlen(trim($host['mac'])) == 0)
+			continue;
+
+		// now we look up the host name from router's list
+		// using the mac address from the input host.
+		foreach ($router_mac_to_host_list as $router_client) {
+			if (strtolower($host['mac']) == strtolower($router_client['mac'])) {
+				$host['hostname'] = $router_client['hostname'];
+				break;	// done
+			}
+		} // foreach client record from router's DHCP lease.
+	} // foreach input host to be patched.
 	
 }
+
+
+function netmon_asus_router_scan(&$hosts) {
+
+	// asus's router configuration.
+	$router_host = Config::get('router_host');
+	$router_username = Config::get('router_username');
+	$router_password = Config::get('router_password');
+
+
+	// retrieve the list of MAC address. Any MAC address in this list
+	// reflect the fact that the host is online.
+	$router_list = asus_router_get_wireless_client_list($router_host, $router_username, $router_password);
+
+	echo "list of wireless clients from asus router:\n";
+//	print_r($router_list);
+
+	// retrieve the DHCP leases from the router. note that the list 
+	// maybe out of date and the client may have already disconnected.
+	$router_dhcp_list = asus_router_get_dhcp_lease($router_host, $router_username, $router_password);
+	echo "list of DHCP leases from asus router:\n";
+//	print_r($router_dhcp_list);
+
+
+	// merge the two lists (real-time wireless client and old DHCP leases)
+	// into a new list.
+	if ($router_list !== FALSE && $router_dhcp_list !== FALSE) {
+	foreach ($router_list as &$wireless_client) {
+		foreach ($router_dhcp_list as $dhcp_lease) {
+			if (strtolower($wireless_client['mac']) == strtolower($dhcp_lease['mac'])) {
+				$wireless_client['ipv4'] = $dhcp_lease['ipv4'];
+				$wireless_client['hostname'] = $dhcp_lease['hostname'];
+				break;
+			}
+		}
+	}
+	}
+
+	echo "patched wireless client list:\n";
+//	print_r($router_list);
+
+
+	//
+	// the input host list may not have the clients contained in the 
+	// router's wireless client list, so we merge router's wireless 
+	// client list into the input list.
+	//
+	$patch_host_count = 0;
+	foreach ($router_list as $wireless_client) {
+	
+		// $exists: true if the wireless client does exist in the 
+		// input host list, false otherwise.
+		$exists = false;
+		foreach ($hosts as $input_host) {
+			// host with matching MAC address.
+			if (!empty($input_host['mac'])
+				&& strtolower($input_host['mac']) == strtolower($wireless_client['mac'])) {
+				$exists = true;
+				break;
+			} else if (!empty($input_host['ipv4'])
+				&& strtolower($input_host['ipv4']) == strtolower($wireless_client['ipv4'])) {
+				$exists = true;
+				break;
+			}
+		}
+
+		if (!$exists) {
+			echo "wireless client is not found, going to add to input host list\n";
+			print_r($wireless_client);
+
+			$o = array_merge(array(), $wireless_client);
+			$o['detect_by'] = 'router';
+			// insert into array.
+			$hosts[] = $o;
+
+			$patch_host_count++;
+		}
+
+	}
+
+	echo "number of hosted added to list: $patch_host_count\n";
+
+}
+
 
 
 
@@ -184,6 +308,8 @@ function netmon_patch_netbios_name() {
 }
 
 
+
+
 /**
  * This function will use the linux utility 'nbtscan' to scan for 
  * NetBIOS name and MAC address for the specified IP.
@@ -191,6 +317,13 @@ function netmon_patch_netbios_name() {
 function netmon_nbtscan($ip) {
 	
 	$nbtscan_bin = Config::get('nbtscan_bin');
+	if (!empty($nbtscan_bin)) $nbtscan_bin = trim($nbtscan_bin);
+
+	if (empty($nbtscan_bin)) {
+		echo "nbtscan_bin configuration item missing, abort\n";
+		return FALSE;
+	}
+
 
 	$cmd = "$nbtscan_bin -s =###= -q $ip";
 //	echo "sbtscan command: $cmd\n";

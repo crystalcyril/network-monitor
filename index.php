@@ -5,13 +5,28 @@ require_lib('db');
 require_lib('nmap');
 
 
+
+$type = @$_REQUEST['type'];
+if (empty($type)) {
+	$type = 'active';
+}
+
+
+
 $db = new FileDb();
 $db->open();
 
 // lots of database query.
+$hostCount = $db->getHostCount();
 $activeHostCount = $db->getActiveHostCount();
 $activeHostActualCount = $db->getActiveHostTotalCount();
-$activeHosts = $db->getActiveHostsWithNickName();
+
+$activeHosts = null;
+if ('all' == $type) {
+	$activeHosts = $db->getHostsWithNickName();
+} else {
+	$activeHosts = $db->getActiveHostsWithNickName();
+}
 
 ?>
 <!DOCTYPE html>
@@ -28,8 +43,7 @@ $activeHosts = $db->getActiveHostsWithNickName();
 
     <div class="row">
         <div class="large-12 columns">
-            <hr />
-            Active Hosts: <span id="active_host"><?php echo $activeHostCount;?></span>
+            Active Hosts: <span id="active_host"><a href="index.php"><?php echo $activeHostCount;?></a> (Total: <span id="active_host"><a href="?type=all"><?php echo $hostCount;?></span></a>)</span>
             <br />
             (total: <span id="active_host_actual"><?php echo $activeHostActualCount;?></span>, filtered <span id="active_host_filtered"><?php echo $activeHostActualCount - $activeHostCount;?></span>)
             <br />
@@ -41,6 +55,7 @@ $activeHosts = $db->getActiveHostsWithNickName();
             <table>
             	<thead>
             		<tr>
+				<th>#</th>
             			<th>Who</th>
             			<th>IP</th>
             			<th>Host</th>
@@ -48,6 +63,7 @@ $activeHosts = $db->getActiveHostsWithNickName();
             	</thead>
             	<tbody>
             		<?php
+				$i = 1;
             			foreach ($activeHosts as $activeHost) {
 
 							$macInfo = 'MAC: ' . strtoupper($activeHost['mac']);
@@ -56,11 +72,13 @@ $activeHosts = $db->getActiveHostsWithNickName();
 							}
             		?>
             		<tr>
+				<td><?php echo $i; ?>
             			<td><?php echo $activeHost['nickname'];?></td>
             			<td><span title="<?php echo $macInfo;?>"><?php echo $activeHost['ipv4'];?></span></td>
             			<td><?php echo $activeHost['hostname'];?></td>
             		</tr>
             		<?php
+					$i++;
             			} 
             		?>
             	</tbody>

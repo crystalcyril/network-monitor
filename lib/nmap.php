@@ -52,8 +52,10 @@ function netmon_nmap_network_scan($target, $options) {
 	$output_xml_file = tempnam(sys_get_temp_dir(), "netmon");
 
 	// build the NMAP command to scan all hosts.
+	// we found that as of NMAP 5.21, if -O (OS detection) is added,
+	// all iPhone and android phones cannot be found.
 	$opts = '-sV -T4 -O -F --version-light';
-	$opts = '-T4 -O --osscan-guess -F';
+	$opts = '-T4 -F';
 	$cmd = $nmap_bin . " $opts $target" . " -oX $output_xml_file";
 
 	$output = array();
@@ -127,6 +129,9 @@ function netmon_convert_nmap_xml_to_host($nmapXmlDOM) {
 			$nicVendor = null;	// e.g. Apple, 
 			$hostname = null;
 			$nicState = null;	// e.g. up/down
+			//
+			$osFamily = null;
+			$os = null;
 			
 			// we need to skip those inactive scans
 			if (strtolower($host->status['state']) != 'up') {
@@ -158,7 +163,7 @@ function netmon_convert_nmap_xml_to_host($nmapXmlDOM) {
 						
 						// may have vendor information
 						if ($address['vendor'] != null) {
-							$nicVendor = $address['vendor'];
+							$nicVendor = (string)$address['vendor'];
 						}
 					}
 				}
@@ -186,6 +191,7 @@ function netmon_convert_nmap_xml_to_host($nmapXmlDOM) {
 			$o['mac'] = $mac;
 			$o['hostname'] = $hostname;
 			$o['nic_vendor'] = $nicVendor;
+			$o['detect_by'] = 'nmap';
 
 			print_r($o);
 			

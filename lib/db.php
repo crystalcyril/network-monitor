@@ -251,9 +251,9 @@ class FileDb {
 		
 		)";
 		
-		$sql .= "WHERE ipv4 NOT IN (SELECT DISTINCT ipv4 FROM host_filter WHERE ipv4 IS NOT NULL AND ipv4 <> '') "
-				. " AND mac NOT IN (SELECT DISTINCT mac FROM host_filter WHERE mac IS NOT NULL AND mac <> '')"
-				. " AND hostname NOT IN (SELECT DISTINCT hostname FROM host_filter WHERE hostname IS NOT NULL AND hostname <> '')"
+		$sql .= "WHERE (ipv4 NOT IN (SELECT DISTINCT ipv4 FROM host_filter WHERE ipv4 IS NOT NULL AND ipv4 <> '') OR ipv4 IS NULL) "
+				. " AND (mac NOT IN (SELECT DISTINCT mac FROM host_filter WHERE mac IS NOT NULL AND mac <> '') OR mac IS NULL)"
+				. " AND (hostname NOT IN (SELECT DISTINCT hostname FROM host_filter WHERE hostname IS NOT NULL AND hostname <> '') OR hostname IS NULL)"
 				;
 		
 		$sql .= "ORDER BY nickname ASC, ipv4 ASC";

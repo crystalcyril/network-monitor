@@ -193,7 +193,7 @@ function netmon_convert_nmap_xml_to_host($nmapXmlDOM) {
 			$o['nic_vendor'] = $nicVendor;
 			$o['detect_by'] = 'nmap';
 
-			print_r($o);
+			//print_r($o);
 			
 			$ret[] = $o;
 

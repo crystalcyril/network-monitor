@@ -61,7 +61,7 @@ function netmon_collect() {
 	netmon_asusrouter_visit($hosts);
 
 	// now append information if not exists.
-	echo "hosts after rectification\n";
+//	echo "hosts after rectification\n";
 //	print_r($hosts);
 	
 
@@ -210,35 +210,46 @@ function netmon_asus_router_scan(&$hosts) {
 	// reflect the fact that the host is online.
 	$router_list = asus_router_get_wireless_client_list($router_host, $router_username, $router_password);
 
-	echo "list of wireless clients from asus router:\n";
+	if ($router_list !== FALSE) {
+		echo "number of wireless clients from asus router: " . count($router_list) . "\n";
+//	echo "list of wireless clients from asus router:\n";
 //	print_r($router_list);
+	}
 
 	// retrieve the DHCP leases from the router. note that the list 
 	// maybe out of date and the client may have already disconnected.
 	$router_dhcp_list = asus_router_get_dhcp_lease($router_host, $router_username, $router_password);
+	
+	if ($router_dhcp_list !== FALSE) {
+		echo "number of DHCP leases from asus router: " . count($router_dhcp_list) . "\n";
 //	echo "list of DHCP leases from asus router:\n";
 //	print_r($router_dhcp_list);
+	}
 
 
 	// merge the two lists (real-time wireless client and old DHCP leases)
 	// into a new list.
+	$patched_wireless_client_count = 0;
 	if ($router_list !== FALSE && $router_dhcp_list !== FALSE) {
 		foreach ($router_list as &$wireless_client) {
 			foreach ($router_dhcp_list as $dhcp_lease) {
 				if (strtolower($wireless_client['mac']) == strtolower($dhcp_lease['mac'])) {
-					echo "matching information found, patching wireless client (mac=" . $wireless_client['mac'] . ")\n";
+//					echo "matching information found, patching wireless client (mac=" . $wireless_client['mac'] . ")\n";
 					$wireless_client['ipv4'] = $dhcp_lease['ipv4'];
 					$wireless_client['hostname'] = $dhcp_lease['hostname'];
+					$patched_wireless_client_count++;
 					break;
 				}
 			}
 		}
 		unset($wireless_client);
+
+		echo "number of wireless client patched: $patched_wireless_client_count of " . count($router_list) . "\n";
 	}
 
 //	echo "patched wireless client list:\n";
 //	print_r($router_list);
-
+	
 
 	//
 	// the input host list may not have the clients contained in the 
@@ -277,7 +288,7 @@ function netmon_asus_router_scan(&$hosts) {
 
 	}
 
-	echo "number of hosted added to list: $patch_host_count\n";
+	echo "number of hosts detected in asus router which are added to host list: $patch_host_count\n";
 
 }
 

@@ -62,7 +62,7 @@ function netmon_collect() {
 
 	// now append information if not exists.
 	echo "hosts after rectification\n";
-	print_r($hosts);
+//	print_r($hosts);
 	
 
 
@@ -140,6 +140,8 @@ function netmon_nbtscan_visit(&$hosts) {
 		}
 
 	}
+
+	unset($host);
 }
 
 
@@ -190,6 +192,8 @@ function netmon_asusrouter_visit(&$hosts) {
 			}
 		} // foreach client record from router's DHCP lease.
 	} // foreach input host to be patched.
+
+	unset($host);
 	
 }
 
@@ -212,25 +216,27 @@ function netmon_asus_router_scan(&$hosts) {
 	// retrieve the DHCP leases from the router. note that the list 
 	// maybe out of date and the client may have already disconnected.
 	$router_dhcp_list = asus_router_get_dhcp_lease($router_host, $router_username, $router_password);
-	echo "list of DHCP leases from asus router:\n";
+//	echo "list of DHCP leases from asus router:\n";
 //	print_r($router_dhcp_list);
 
 
 	// merge the two lists (real-time wireless client and old DHCP leases)
 	// into a new list.
 	if ($router_list !== FALSE && $router_dhcp_list !== FALSE) {
-	foreach ($router_list as &$wireless_client) {
-		foreach ($router_dhcp_list as $dhcp_lease) {
-			if (strtolower($wireless_client['mac']) == strtolower($dhcp_lease['mac'])) {
-				$wireless_client['ipv4'] = $dhcp_lease['ipv4'];
-				$wireless_client['hostname'] = $dhcp_lease['hostname'];
-				break;
+		foreach ($router_list as &$wireless_client) {
+			foreach ($router_dhcp_list as $dhcp_lease) {
+				if (strtolower($wireless_client['mac']) == strtolower($dhcp_lease['mac'])) {
+					echo "matching information found, patching wireless client (mac=" . $wireless_client['mac'] . ")\n";
+					$wireless_client['ipv4'] = $dhcp_lease['ipv4'];
+					$wireless_client['hostname'] = $dhcp_lease['hostname'];
+					break;
+				}
 			}
 		}
-	}
+		unset($wireless_client);
 	}
 
-	echo "patched wireless client list:\n";
+//	echo "patched wireless client list:\n";
 //	print_r($router_list);
 
 
@@ -248,11 +254,11 @@ function netmon_asus_router_scan(&$hosts) {
 		foreach ($hosts as $input_host) {
 			// host with matching MAC address.
 			if (!empty($input_host['mac'])
-				&& strtolower($input_host['mac']) == strtolower($wireless_client['mac'])) {
+					&& strtolower($input_host['mac']) == strtolower($wireless_client['mac'])) {
 				$exists = true;
 				break;
 			} else if (!empty($input_host['ipv4'])
-				&& strtolower($input_host['ipv4']) == strtolower($wireless_client['ipv4'])) {
+					&& strtolower($input_host['ipv4']) == strtolower($wireless_client['ipv4'])) {
 				$exists = true;
 				break;
 			}
@@ -260,7 +266,6 @@ function netmon_asus_router_scan(&$hosts) {
 
 		if (!$exists) {
 			echo "wireless client is not found, going to add to input host list\n";
-			print_r($wireless_client);
 
 			$o = array_merge(array(), $wireless_client);
 			$o['detect_by'] = 'router';

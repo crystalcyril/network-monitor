@@ -169,7 +169,16 @@ class FileDb {
 	
 	}	
 	
-	
+	/**
+	 * Returns the total number of host records.
+	 */
+	public function getHostCount() {
+		$sql = "SELECT COUNT(id) FROM host";
+		$stmt = $this->db->prepare($sql);
+		$stmt->execute();
+		$rows = $stmt->fetch(PDO::FETCH_NUM);
+		return $rows[0];
+	}
 	
 	public function getActiveHostCount() {
 		
@@ -242,22 +251,70 @@ class FileDb {
 		
 		)";
 		
-		$sql .= "WHERE ipv4 NOT IN (SELECT DISTINCT ipv4 FROM host_filter WHERE ipv4 IS NOT NULL AND ipv4 <> '') "
-				. " AND mac NOT IN (SELECT DISTINCT mac FROM host_filter WHERE mac IS NOT NULL AND mac <> '')"
-				. " AND hostname NOT IN (SELECT DISTINCT hostname FROM host_filter WHERE hostname IS NOT NULL AND hostname <> '')"
+		$sql .= "WHERE (ipv4 NOT IN (SELECT DISTINCT ipv4 FROM host_filter WHERE ipv4 IS NOT NULL AND ipv4 <> '') OR ipv4 IS NULL) "
+				. " AND (mac NOT IN (SELECT DISTINCT mac FROM host_filter WHERE mac IS NOT NULL AND mac <> '') OR mac IS NULL)"
+				. " AND (hostname NOT IN (SELECT DISTINCT hostname FROM host_filter WHERE hostname IS NOT NULL AND hostname <> '') OR hostname IS NULL)"
 				;
-				
-		$sql .= "ORDER BY nickname DESC";
+		
+		$sql .= "ORDER BY nickname ASC, ipv4 ASC";
+
 		$stmt = $this->db->prepare($sql);
 		$stmt->execute();
 		$result = $stmt->fetchAll();
 		return $result;
 	}
 	
+	public function getHostsWithNickName() {
+		$sql = "
+		SELECT * FROM
+		(
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		FROM host s, host_alias a
+		WHERE s.ipv4=a.ipv4 AND a.ipv4 IS NOT NULL AND a.ipv4 <> ''
+		
+		UNION
+		
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		FROM host s, host_alias a
+		WHERE s.ipv6=a.ipv6 AND a.ipv6 IS NOT NULL AND a.ipv6 <> ''
+		
+		UNION
+		
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		FROM host s, host_alias a
+		WHERE LOWER(s.mac)=LOWER(a.mac) AND a.mac IS NOT NULL AND a.mac <> ''
+		
+		UNION
+		
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		FROM host s, host_alias a
+		WHERE s.hostname=a.hostname AND a.hostname IS NOT NULL AND a.hostname <> ''
+		
+		UNION
+		
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, null as nickname
+		FROM host s
+		WHERE (s.mac IS NULL OR LOWER(s.mac) NOT IN (SELECT DISTINCT LOWER(mac) FROM host_alias WHERE mac IS NOT NULL AND mac <> ''))
+		AND (s.ipv4 IS NULL OR LOWER(s.ipv4) NOT IN (SELECT DISTINCT LOWER(ipv4) FROM host_alias WHERE ipv4 IS NOT NULL AND ipv4 <> ''))
+		AND (s.ipv6 IS NULL OR LOWER(s.ipv6) NOT IN (SELECT DISTINCT LOWER(ipv6) FROM host_alias WHERE ipv6 IS NOT NULL AND ipv6 <> ''))
+		AND (s.hostname IS NULL OR LOWER(s.hostname) NOT IN (SELECT DISTINCT LOWER(hostname) FROM host_alias WHERE hostname IS NOT NULL AND hostname <> ''))
+		
+		)";
+		
+		$sql .= "ORDER BY nickname ASC, ipv4 ASC";
+
+		$stmt = $this->db->prepare($sql);
+		$stmt->execute();
+		$result = $stmt->fetchAll();
+		return $result;
+	}
 	
 	public function updateLastScan() {
 		
 		
+	}
+
+	public function getHostSessionWithEmptyHostname() {
 	}
 	
 	

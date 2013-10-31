@@ -11,7 +11,9 @@
  */
 
 
-require_once 'bootstrap.php';
+if (!defined('BOOTSTRAPPED')) {
+	exit('should not include this script directly');
+}
 
 require_lib('db');
 require_lib('nmap');

@@ -221,11 +221,13 @@ function netmon_asus_router_scan(&$hosts) {
 	// retrieve the DHCP leases from the router. note that the list 
 	// maybe out of date and the client may have already disconnected.
 	$router_dhcp_list = asus_router_get_dhcp_lease($router_host, $router_username, $router_password);
-	
+
 	if ($router_dhcp_list !== FALSE) {
 		echo "number of DHCP leases from asus router: " . count($router_dhcp_list) . "\n";
 //	echo "list of DHCP leases from asus router:\n";
 //	print_r($router_dhcp_list);
+	} else {
+		echo "failed to read DHCP leases from asus router\n";
 	}
 
 

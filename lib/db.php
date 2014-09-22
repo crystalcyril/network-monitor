@@ -218,31 +218,31 @@ class FileDb {
 		$sql = "
 		SELECT * FROM
 		(
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE s.ipv4=a.ipv4 AND a.ipv4 IS NOT NULL AND a.ipv4 <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE s.ipv6=a.ipv6 AND a.ipv6 IS NOT NULL AND a.ipv6 <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE LOWER(s.mac)=LOWER(a.mac) AND a.mac IS NOT NULL AND a.mac <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE s.hostname=a.hostname AND a.hostname IS NOT NULL AND a.hostname <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, null as nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, null as nickname, s.last_scan
 		FROM host s
 		WHERE (s.mac IS NULL OR LOWER(s.mac) NOT IN (SELECT DISTINCT LOWER(mac) FROM host_alias WHERE mac IS NOT NULL AND mac <> ''))
 		AND (s.ipv4 IS NULL OR LOWER(s.ipv4) NOT IN (SELECT DISTINCT LOWER(ipv4) FROM host_alias WHERE ipv4 IS NOT NULL AND ipv4 <> ''))
@@ -268,31 +268,31 @@ class FileDb {
 		$sql = "
 		SELECT * FROM
 		(
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE s.ipv4=a.ipv4 AND a.ipv4 IS NOT NULL AND a.ipv4 <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE s.ipv6=a.ipv6 AND a.ipv6 IS NOT NULL AND a.ipv6 <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE LOWER(s.mac)=LOWER(a.mac) AND a.mac IS NOT NULL AND a.mac <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, a.nickname, s.last_scan
 		FROM host s, host_alias a
 		WHERE s.hostname=a.hostname AND a.hostname IS NOT NULL AND a.hostname <> ''
 		
 		UNION
 		
-		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, null as nickname
+		SELECT s.ipv4, s.hostname, s.mac, s.nic_vendor, null as nickname, s.last_scan
 		FROM host s
 		WHERE (s.mac IS NULL OR LOWER(s.mac) NOT IN (SELECT DISTINCT LOWER(mac) FROM host_alias WHERE mac IS NOT NULL AND mac <> ''))
 		AND (s.ipv4 IS NULL OR LOWER(s.ipv4) NOT IN (SELECT DISTINCT LOWER(ipv4) FROM host_alias WHERE ipv4 IS NOT NULL AND ipv4 <> ''))

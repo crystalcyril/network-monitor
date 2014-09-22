@@ -270,6 +270,7 @@ function asus_router_get_dhcp_lease($router_ip, $username, $password) {
 	$match_result = preg_match('/<textarea\s.*>(.*)<\/textarea/sim', $webpage, $matches);
 	if ($match_result !== 1) {
 		echo "unable to grep wireless station list\n";
+		echo "read web page data is: [[[$webpage]]]\n\n";
 		return FALSE;
 	}
 	if (count($matches) != 2) {
@@ -281,8 +282,11 @@ function asus_router_get_dhcp_lease($router_ip, $username, $password) {
 	//
 	// parse the content.
 	//
+	$ret = array();
 	$raw_client_list = preg_split("/\r\n|\n|\r/", $webpage);
 	foreach ($raw_client_list as $raw_client_line) {
+
+//		echo "raw_client_line = [[$raw_client_line]] (count=" . count($raw_client_parts) . ")\n";
 
 		$raw_client_line = trim($raw_client_line);
 		$raw_client_parts = preg_split('/\s+/', $raw_client_line);
@@ -292,29 +296,32 @@ function asus_router_get_dhcp_lease($router_ip, $username, $password) {
 
 		$o = array();
 
-		// the second element is MAC address which is 12 + 5 = 17 characters.
-		$mac = trim($raw_client_parts[1]);
+		// the 1st element is hostname
+		$hostname = trim($raw_client_parts[0]);
+		if ('*' == $hostname) {
+			$hostname = null;
+		}
+
+		$o['hostname'] = $hostname;
+		// the second element is IP (v4) address.
+		$ip = trim($raw_client_parts[1]);
+		if (strlen($ip) < 7) {
+			echo "ip address '$ip' should not be shorter than 7 characters! skipped\n";
+			continue;
+		}
+		$o['ipv4'] = $ip;
+
+		// the third element is MAC address which is 12 + 5 = 17 characters.
+		$mac = trim($raw_client_parts[2]);
 		if (strlen($mac) != 17) {
+			echo "mac address '$mac' is not 17 character long! skipped\n";
 			continue;
 		}
 		$mac = strtoupper($mac);
 		$o['mac'] = $mac;
 
-		// the third element is IP (v4) address.
-		$ip = trim($raw_client_parts[2]);
-		if (strlen($mac) < 7) {
-			continue;
-		}
-		$o['ipv4'] = $ip;
-
-		// the 4th element is hostname
-		$hostname = trim($raw_client_parts[3]);
-		if ('*' == $hostname) {
-			$hostname = null;
-		}
-		$o['hostname'] = $hostname;
-
 		$ret[] = $o;
+
 	}
 
 	return $ret;

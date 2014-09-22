@@ -28,6 +28,17 @@ if ('all' == $type) {
 	$activeHosts = $db->getActiveHostsWithNickName();
 }
 
+// find the last scan time
+$lastScannedAt = null;
+
+foreach ($activeHosts as $activeHost) {
+	if (!empty($activeHost['last_scan'])) {
+		$lastScannedAt = $activeHost['last_scan'];
+		break;
+	}
+}
+
+
 ?>
 <!DOCTYPE html>
 <!--[if IE 8]> 				 <html class="no-js lt-ie9" lang="en" > <![endif]-->
@@ -47,7 +58,7 @@ if ('all' == $type) {
             <br />
             (total: <span id="active_host_actual"><?php echo $activeHostActualCount;?></span>, filtered <span id="active_host_filtered"><?php echo $activeHostActualCount - $activeHostCount;?></span>)
             <br />
-            last scanned: <span id="last_scan_at">0</span>
+            last scanned: <span id="last_scan_at"><?php if (!empty($lastScannedAt)) echo $lastScannedAt; ?></span>
             
             <br/><br/>
             
@@ -73,7 +84,7 @@ if ('all' == $type) {
             		?>
             		<tr>
 				<td><?php echo $i; ?>
-            			<td><?php echo $activeHost['nickname'];?></td>
+            			<td><?php echo $activeHost['nickname'];?><br/><!--<small><?php echo $activeHost['last_scan'];?></small>--></td>
             			<td><span title="<?php echo $macInfo;?>"><?php echo $activeHost['ipv4'];?></span></td>
             			<td><?php echo $activeHost['hostname'];?></td>
             		</tr>
